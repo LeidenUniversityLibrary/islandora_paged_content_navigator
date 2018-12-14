@@ -1,0 +1,70 @@
+<?php
+
+/**
+ * @file
+ * islandora_paged_content_navigator.module
+ *
+ *
+ *  Copyright 2017-2018 Leiden University Library
+ *
+ *  This file is part of islandora_paged_content_navigator.
+ *
+ *  islandora_paged_content_navigator is free software: you can redistribute it
+ *  and/or modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation, either version 3 of the License,
+ *  or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * Implements hook_block_info().
+ */
+function islandora_paged_content_navigator_block_info() {
+
+  $blocks['paged_content_navigator'] = array(
+    'info' => t('Paged Content Navigator'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function islandora_paged_content_navigator_block_view($delta = '') {
+  // If there is no object there are no blocks.
+  $object = menu_get_object('islandora_object', 2);
+  if (!$object) {
+    return FALSE;
+  }
+
+  // Object is a page and has a parent.
+  if (count($object->relationships->get(ISLANDORA_RELS_EXT_URI, 'isPageOf')) === 0) {
+    return FALSE;
+  }
+
+  // We should be on the "view" callback.
+  $menu_item = menu_get_item();
+  if ($menu_item['path'] != 'islandora/object/%/view' && $menu_item['path'] != 'islandora/object/%') {
+    return FALSE;
+  }
+
+  $block = array();
+  switch ($delta) {
+    case 'paged_content_navigator':
+      if (module_load_include('module', 'islandora_paged_content') !== FALSE) {
+        $block['content'] = theme('islandora_paged_content_page_navigator', array('object' => $object));
+      }
+      break;
+  }
+
+  return $block;
+}
