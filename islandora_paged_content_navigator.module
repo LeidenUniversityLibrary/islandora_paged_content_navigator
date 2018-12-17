@@ -39,6 +39,29 @@ function islandora_paged_content_navigator_block_info() {
 /**
  * Implements hook_block_view().
  */
+function islandora_paged_content_navigator_theme() {
+  $path = drupal_get_path('module', 'islandora_paged_content_navigator');
+
+  return array(
+    'islandora_paged_content_navigation_block' => array(
+      'path' => $path . '/theme',
+      'file' => 'theme.inc',
+      'template' => 'islandora-paged-content-navigation-block',
+      'variables' => array(
+        'return_link' => NULL,
+        'prev_link' => NULL,
+        'next_link' => NULL,
+        'prev_text' => NULL,
+        'return_text' => NULL,
+        'next_text' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
 function islandora_paged_content_navigator_block_view($delta = '') {
   // If there is no object there are no blocks.
   $object = menu_get_object('islandora_object', 2);
@@ -60,8 +83,42 @@ function islandora_paged_content_navigator_block_view($delta = '') {
   $block = array();
   switch ($delta) {
     case 'paged_content_navigator':
-      if (module_load_include('module', 'islandora_paged_content') !== FALSE) {
-        $block['content'] = theme('islandora_paged_content_page_navigator', array('object' => $object));
+      if (module_load_include('inc', 'islandora_paged_content', 'includes/utilities') !== FALSE) {
+        $return_link = NULL;
+        $prev_link = NULL;
+        $next_link = NULL;
+
+        $results = $object->relationships->get(ISLANDORA_RELS_EXT_URI, 'isPageOf');
+        $result = reset($results);
+        $parent = $result ? islandora_object_load($result['object']['value']) : FALSE;
+        $pages = $parent ? islandora_paged_content_get_pages($parent) : array();
+        $pages = array_keys($pages);
+        if (empty($pages)) {
+          $pages[] = $object->id;
+        }
+        $index = array_search($object->id, $pages);
+        $previous_page = isset($pages[$index - 1]) ? $pages[$index - 1] : NULL;
+        $next_page = isset($pages[$index + 1]) ? $pages[$index + 1] : NULL;
+
+        if ($previous_page) {
+          $prev_link = url("islandora/object/{$previous_page}", array('absolute' => TRUE));
+        }
+        if ($parent) {
+          $return_link = url("islandora/object/{$parent->id}", array('absolute' => TRUE));
+        }
+        if ($next_page) {
+          $next_link = url("islandora/object/{$next_page}", array('absolute' => TRUE));
+        }
+
+        $block['subject'] = NULL;
+        $block['content'] = theme('islandora_paged_content_navigation_block', array(
+          'return_link' => $return_link,
+          'return_text' => t('Return to book'),
+          'prev_link' => $prev_link,
+          'prev_text' => t('Previous Page'),
+          'next_link' => $next_link,
+          'next_text' => t('Next Page'),
+        ));
       }
       break;
   }
