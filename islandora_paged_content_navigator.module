@@ -104,7 +104,7 @@ function islandora_paged_content_navigator_block_view($delta = '') {
           $prev_link = url("islandora/object/{$previous_page}", array('absolute' => TRUE));
         }
         if ($parent) {
-          $return_link = url("islandora/object/{$parent->id}", array('absolute' => TRUE));
+          $return_link = url("islandora/object/{$parent->id}/pages", array('absolute' => TRUE));
         }
         if ($next_page) {
           $next_link = url("islandora/object/{$next_page}", array('absolute' => TRUE));
