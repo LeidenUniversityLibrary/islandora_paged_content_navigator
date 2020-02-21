@@ -114,7 +114,7 @@ function islandora_paged_content_navigator_block_view($delta = '') {
         $block['subject'] = NULL;
         $block['content'] = theme('islandora_paged_content_navigation_block', array(
           'return_link' => $return_link,
-          'return_text' => t('Return to book'),
+          'return_text' => t('Return to @item', array('@item' => in_array('islandora:newspaperIssueCModel', $parent->models) ? t('issue') : t('book'))),
           'prev_link' => $prev_link,
           'prev_text' => t('Previous Page'),
           'next_link' => $next_link,
